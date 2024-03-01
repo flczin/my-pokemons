@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Roboto_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Best Movies",
+  title: "My Pokemons",
   description: "Created by flczin",
 };
 
