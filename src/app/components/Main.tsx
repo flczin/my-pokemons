@@ -3,14 +3,15 @@
 import Card from "./Card"
 import useAxios from "../hooks/useAxios"
 import { useEffect, useState } from "react"
+import { Pokemon } from "../types/pokemon"
 
 export default function Main() {
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 9,
+    pageSize: 12,
   })
   const [totalPages, setTotalPages] = useState(0)
-  const [pokemonDetails, setPokemonDetails] = useState([])
+  const [pokemonDetails, setPokemonDetails] = useState<Pokemon[]>([])
   const [loadingDetails, setLoadingDetails] = useState(false)
 
   const [{ data, loading }, refetch] = useAxios({
@@ -26,12 +27,13 @@ export default function Main() {
     if (data && data.results) {
       setLoadingDetails(true)
       const fetchDetails = async () => {
-        const details = await Promise.all(
-          data.results.map(async (pokemon) => {
-            const response = await fetch(pokemon.url)
-            return response.json()
+        const details: Array<Pokemon> = await Promise.all(
+          data.results.map(async (pokemon: { name: string; url: string }) => {
+            const response = (await fetch(pokemon.url)).json()
+            return response
           })
         )
+
         setPokemonDetails(details)
         setLoadingDetails(false)
       }
@@ -58,34 +60,41 @@ export default function Main() {
   }
 
   return (
-    <div>
-      <div className="grid grid-cols-3 gap-4">
+    <div className="flex flex-col items-center">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 p-5">
         {loading || loadingDetails ? (
           <div>Loading...</div>
         ) : (
-          pokemonDetails.map((pokemon, index) => (
+          pokemonDetails.map((pokemon: Pokemon, index) => (
             <Card
               key={index}
               name={pokemon.name}
-              imageUrl={pokemon.sprites.front_default}
-              types={pokemon.types.map((type) => type.type.name)}
+              imageUrl={[
+                pokemon.sprites.front_default,
+                pokemon.sprites.other.home.front_default,
+              ]}
+              types={pokemon.types}
+              abilities={pokemon.abilities}
+              stats={pokemon.stats}
             />
           ))
         )}
       </div>
-      <div className="flex justify-between mt-4">
+      <div className="flex justify-center p-4">
         <button
           onClick={handlePrevPage}
           disabled={pagination.pageIndex === 0}
-          className="bg-primary hover:bg-primary/90 font-bold py-2 px-4 rounded"
+          className="bg-primary hover:bg-primary/90 font-bold p-2 rounded"
         >
           Previous
         </button>
-        <span>{`Page ${pagination.pageIndex + 1} of ${totalPages}`}</span>
+        <span className="p-2">{`Page ${
+          pagination.pageIndex + 1
+        } of ${totalPages}`}</span>
         <button
           onClick={handleNextPage}
           disabled={pagination.pageIndex === totalPages - 1}
-          className="bg-primary hover:bg-primary/90 font-bold py-2 px-4 rounded"
+          className="bg-primary hover:bg-primary/90 font-bold p-2 rounded"
         >
           Next
         </button>
